@@ -1,0 +1,7 @@
+{
+    "stuid":"1231231234",
+    "passwd":"12345678",
+    "webdriver_path":"D:/somepath/msedgedriver.exe",
+    "driver_name":"Edge",
+    "input_temperature":false
+}
