@@ -1,1 +1,1 @@
-call python -i main.py
+call python main.py
