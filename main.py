@@ -95,49 +95,6 @@ def epidemic_access(driver:webdriver.Edge):
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
 
-def epidemic(driver, input_temperature):
-    # TODO 入校后的云战役多了一些新的项，处理一下
-    # open pku epidemic
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "keyword"))
-    ).clear()
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "keyword"))
-    ).send_keys('燕园云战“疫”',Keys.ENTER)
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "epidemic"))
-    ).click()
-    driver.switch_to.window(driver.window_handles[1])
-    # temperature, optional
-    time.sleep(1)
-    if input_temperature:
-        s = input("Please input your temperature today: ") # no validation check.
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="pane-daily_info_tab"]/form/div[12]/div/div/div/input'))
-        ).clear()
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="pane-daily_info_tab"]/form/div[12]/div/div/div/input'))
-        ).send_keys(s)
-    # show symptoms? no
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="pane-daily_info_tab"]/form/div[13]/div/label[2]/span[1]'))
-    ).click()
-    # status? healthy.
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="pane-daily_info_tab"]/form/div[14]/div/div/div'))
-    ).click()
-    time.sleep(1)
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[1]/div[1]/ul/li[1]'))
-    ).click()
-    # submit
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="pane-daily_info_tab"]/form/div[17]/div/button'))
-    ).click()
-    print('Task Finished!')
-    time.sleep(3)
-    driver.close()
-    driver.switch_to.window(driver.window_handles[0])
 
 if __name__ == "__main__":
     driver, conf = iaaa_login('conf.json', headless=False)
