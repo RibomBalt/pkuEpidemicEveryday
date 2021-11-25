@@ -1,3 +1,6 @@
 conf.json
 test_run.bat
 *.log
+.vscode
+edgedriver_win64
+edgedriver_win64.zip

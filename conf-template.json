@@ -2,12 +2,5 @@
     "stuid":"1231231234",
     "passwd":"12345678",
     "webdriver_path":"D:/somepath/msedgedriver.exe",
-    "driver_name":"Edge",
-    "input_temperature":false,
-    "epidemic_access":{
-        "reason":"因学业原因前往物理楼",
-        "track":"北大东门-物理楼-北大东门",
-        "street":"燕园街道",
-        "BJdate":[2020, 9, 14]
-    }
+    "driver_name":"Edge"
 }
