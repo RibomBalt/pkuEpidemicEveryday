@@ -106,5 +106,6 @@ if __name__ == "__main__":
     epidemic_access(driver)
     with open('exit_school.log','a') as f:
         f.write('%s\n'%(time.asctime(time.localtime()),))
+    driver.quit()
 
     
