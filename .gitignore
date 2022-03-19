@@ -4,3 +4,9 @@ test_run.bat
 .vscode
 edgedriver_win64
 edgedriver_win64.zip
+uspw.dat
+__pycache__
+build
+dist
+main.spec
+main.exe

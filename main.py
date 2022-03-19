@@ -4,15 +4,32 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import json
+import os
 import time
+import pickle
+from getpass import getpass
 # from datetime import date
 
+def uspw_input(db_name = 'uspw.dat'):
+    '''use pickle
+    '''
+    us = input('Please input Your Student ID: ')
+    pw = getpass('Please input your Password: ')
+    engine_name = input('Please input your Engine Name (e.g.: Edge): ')
+    engine_path = input('Please input yourt Engine Path (e.g.: D:/somepath/msedgedriver.exe)')
+    conf = {'stuid': us, 'passwd': pw, 'webdriver_path': engine_path, 'driver_name': engine_name}
+    with open(db_name, 'wb') as f:
+        pickle.dump(conf, f)
+    return conf
 
-def iaaa_login(config_fname, headless=False):
+
+
+def iaaa_login(conf:dict, headless=False):
     # read conf.json
-    with open(config_fname,'r',encoding='utf-8') as f:
-        content = f.read()
-    conf = json.loads(content)
+    # with open(config_fname,'r',encoding='utf-8') as f:
+    #     content = f.read()
+    # conf = json.loads(content)
+
     stuid = conf['stuid']
     passwd = conf['passwd']
     webdriver_path = conf['webdriver_path']
@@ -97,7 +114,13 @@ def epidemic_access(driver:webdriver.Edge):
 
 
 if __name__ == "__main__":
-    driver, conf = iaaa_login('conf.json', headless=False)
+    if not os.path.isfile('uspw.dat'):
+        conf = uspw_input()
+    else:
+        with open('uspw.dat', 'rb') as f:
+            conf = pickle.load(f)
+
+    driver, conf = iaaa_login(conf, headless=False)
     # epidemic(driver, conf['input_temperature'])
     # driver.quit()
     
