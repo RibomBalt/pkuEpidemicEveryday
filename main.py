@@ -22,7 +22,12 @@ def uspw_input(db_name = 'uspw.dat'):
     pw = getpass('Please input your Password: ')
     print('In this version only Edge Browser on Windows is supported.')
     engine_name = 'Edge'
-    engine_path = './msedgedriver.exe'
+    engine_path = input('Please input the ABSOLUTE PATH of folder of msedgedriver.exe\n(if empty, the webdriver.exe will be downloaded the same directory)\n: ')
+    if not engine_path:
+        engine_path = './msedgedriver.exe'
+    else:
+        engine_path = os.path.join(engine_path, 'msedgedriver.exe')
+
     conf = {'stuid': us, 'passwd': pw, 'webdriver_path': engine_path, 'driver_name': engine_name}
     with open(db_name, 'wb') as f:
         pickle.dump(conf, f)

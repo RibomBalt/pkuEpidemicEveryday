@@ -8,7 +8,7 @@ uspw.dat
 __pycache__
 build
 dist
-main.spec
+*.spec
 main.exe
 webdriver
 webdriver.zip
