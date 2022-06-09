@@ -99,9 +99,10 @@ def epidemic_access(driver:webdriver.Edge):
     ).click()
     driver.switch_to.window(driver.window_handles[1])
 
-    butns = WebDriverWait(driver, 10).until(
-            lambda d: d.find_elements(By.CLASS_NAME, 'el-card')
-        )
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'el-card'))
+    )
+    butns = driver.find_elements(By.CLASS_NAME, 'el-card')
     dict(zip([butn.text for butn in butns], butns))['园区往返申请'].click()
 
     # insert jQuery no conflicts
@@ -115,55 +116,57 @@ def epidemic_access(driver:webdriver.Edge):
     WebDriverWait(driver, 10).until(
         lambda d:d.execute_script('try{$;return 1;}catch{return 0;}')
     )
-    # attach id for certain elements
-    driver.execute_script('''
-        $('label.el-form-item__label:contains("园区（出）")').parent().find('input').parent().attr('id','yuanquchu')
-        $('label.el-form-item__label:contains("园区（入）")').parent().find('input').parent().attr('id','yuanquru')
-    ''')
+    # Note: 第二天填报会缓存前一天的信息……
+    
+    # # attach id for certain elements
+    # driver.execute_script('''
+    #     $('label.el-form-item__label:contains("园区（出）")').parent().find('input').parent().attr('id','yuanquchu')
+    #     $('label.el-form-item__label:contains("园区（入）")').parent().find('input').parent().attr('id','yuanquru')
+    # ''')
 
-    # fill in forms of 园区（出） and 园区（入）
-    for item_id in ['yuanquchu', 'yuanquru']:
-        item = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, item_id))
-        )
-        item.click()
-        WebDriverWait(driver, 10).until(
-            lambda d:d.execute_script('''
-            return $('ul').parent().parent().parent('div.el-select-dropdown:visible').find('ul').length
-            ''')
-        )
-        driver.execute_script('''
-            $('ul').parent().parent().parent('div.el-select-dropdown:visible').find('ul').attr('id', 'focus_ul')
-        '''.format(item_id))
-        li_focus = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "focus_ul"))
-        ).find_elements_by_tag_name('li')
-        # TODO add this to conf file
-        time.sleep(.5)
-        access_list = ['燕园', '物理学院']
-        for li in li_focus:
-            if li.text in access_list:
-                li.click()
-        # resume focus 
-        time.sleep(.5)
-        driver.execute_script('''
-            $('#{0}').click();
-            $('#focus_ul').removeAttr('id');
-        '''.format(item_id))
+    # # fill in forms of 园区（出） and 园区（入）
+    # for item_id in ['yuanquchu', 'yuanquru']:
+    #     item = WebDriverWait(driver, 10).until(
+    #         EC.element_to_be_clickable((By.ID, item_id)),
+    #     )
+    #     item.click()
+    #     WebDriverWait(driver, 10).until(
+    #         lambda d:d.execute_script('''
+    #         return $('ul').parent().parent().parent('div.el-select-dropdown:visible').find('ul').length
+    #         ''')
+    #     )
+    #     driver.execute_script('''
+    #         $('ul').parent().parent().parent('div.el-select-dropdown:visible').find('ul').attr('id', 'focus_ul')
+    #     '''.format(item_id))
+    #     li_focus = WebDriverWait(driver, 10).until(
+    #         EC.presence_of_element_located((By.ID, "focus_ul"))
+    #     ).find_elements_by_tag_name('li')
+    #     # TODO add this to conf file
+    #     time.sleep(.5)
+    #     access_list = ['燕园', '物理学院']
+    #     for li in li_focus:
+    #         if li.text in access_list:
+    #             li.click()
+    #     # resume focus 
+    #     time.sleep(.5)
+    #     driver.execute_script('''
+    #         $('#{0}').click();
+    #         $('#focus_ul').removeAttr('id');
+    #     '''.format(item_id))
 
-        WebDriverWait(driver, 10).until(
-            lambda d:d.execute_script('''
-            return !$('ul').parent().parent().parent('div.el-select-dropdown:visible').find('ul').length
-            ''')
-        )
+    #     WebDriverWait(driver, 10).until(
+    #         lambda d:d.execute_script('''
+    #         return !$('ul').parent().parent().parent('div.el-select-dropdown:visible').find('ul').length
+    #         ''')
+    #     )
 
-    # fill in 出入校具体事项
-    driver.execute_script('''
-            $('label.el-form-item__label:contains("出入校具体事项")').parent().find('textarea').attr('id', 'focus_crxjtsx')
-        ''')
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'focus_crxjtsx'))
-    ).send_keys('科研工作：物理楼419')
+    # # fill in 出入校具体事项
+    # driver.execute_script('''
+    #         $('label.el-form-item__label:contains("出入校具体事项")').parent().find('textarea').attr('id', 'focus_crxjtsx')
+    #     ''')
+    # WebDriverWait(driver, 10).until(
+    #     EC.presence_of_element_located((By.ID, 'focus_crxjtsx'))
+    # ).send_keys('科研工作：物理楼419')
 
     # checkbox and save and submit
     driver.execute_script('''
@@ -172,18 +175,25 @@ def epidemic_access(driver:webdriver.Edge):
             $('span:contains("提交")').attr('id', 'focus_submit');
         ''')
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'focus_checkbox'))
+        EC.element_to_be_clickable((By.ID, 'focus_checkbox'))
     ).click()
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'focus_save'))
+        EC.element_to_be_clickable((By.ID, 'focus_save'))
     ).click()
+
+    # wait for msgbox to be present
+    WebDriverWait(driver, 10).until(
+        lambda d:d.execute_script('''
+            return $('div.el-message-box__btns').find('button.el-button--primary').length
+        ''')
+    )
     driver.execute_script('''
             $('div.el-message-box__btns').find('button.el-button--primary').attr('id', 'focus_msg_submit');
     ''')
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, 'focus_msg_submit'))
+        EC.element_to_be_clickable((By.ID, 'focus_msg_submit'))
     ).click()
-    print('test')
+    print('填报完成')
 
 def epidemic_access_211123(driver:webdriver.Edge):
     '''
