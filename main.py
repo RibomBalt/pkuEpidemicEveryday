@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.common.exceptions import SessionNotCreatedException
+from selenium.common.exceptions import SessionNotCreatedException, WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -20,8 +20,9 @@ def uspw_input(db_name = 'uspw.dat'):
     '''
     us = input('Please input Your Student ID: ')
     pw = getpass('Please input your Password: ')
-    engine_name = input('Please input your Engine Name (e.g.: Edge): ')
-    engine_path = input('Please input yourt Engine Path (e.g.: D:/somepath/msedgedriver.exe)')
+    print('In this version only Edge Browser on Windows is supported.')
+    engine_name = 'Edge'
+    engine_path = './msedgedriver.exe'
     conf = {'stuid': us, 'passwd': pw, 'webdriver_path': engine_path, 'driver_name': engine_name}
     with open(db_name, 'wb') as f:
         pickle.dump(conf, f)
@@ -57,9 +58,15 @@ def iaaa_login(conf:dict, headless=False):
         else:
             driver = getattr(webdriver, conf['driver_name'])(webdriver_path)
 
-    except SessionNotCreatedException as e:
+    except (SessionNotCreatedException, WebDriverException) as e:
         # webdriver conflict
-        this_edge_version = re.findall(r'Current browser version is ([0-9\.]+?) with', e.msg)[0]
+        try:
+            this_edge_version = re.findall(r'Current browser version is ([0-9\.]+?) with', e.msg)[0]
+        except:
+            # webdriver not present at all, download a history version first
+            r = requests.get('https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/')
+            this_edge_version = re.findall(r'Version: ([\d\.]+?):', r.text)[0]
+
         # TODO currently only win64-edge is supported
         r = requests.get('https://msedgedriver.azureedge.net/{0}/edgedriver_win64.zip'.format(this_edge_version))
         with open('webdriver.zip', 'wb') as f:
