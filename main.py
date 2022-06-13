@@ -12,6 +12,7 @@ import pickle
 from getpass import getpass
 import re
 from zipfile import ZipFile
+import logging
 
 # from datetime import date
 
@@ -180,14 +181,15 @@ def epidemic_access(driver:webdriver.Edge):
     #     EC.presence_of_element_located((By.ID, 'focus_crxjtsx'))
     # ).send_keys('科研工作：物理楼419')
 
-    # checkbox and save and submit
+    # 2022.6.13: new 5sec check
+    time.sleep(6)
     driver.execute_script('''
-            $('span.el-checkbox__label:contains("本人承诺")').attr('id', 'focus_checkbox');
+            $('button.el-button--primary').find('span:contains("确定")').parent().attr('id', 'focus_queding');
             $('span:contains("保存")').attr('id', 'focus_save');
             $('span:contains("提交")').attr('id', 'focus_submit');
         ''')
     WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.ID, 'focus_checkbox'))
+        EC.element_to_be_clickable((By.ID, 'focus_queding'))
     ).click()
     WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, 'focus_save'))
@@ -265,19 +267,29 @@ def epidemic_access_211123(driver:webdriver.Edge):
 
 
 if __name__ == "__main__":
-    if not os.path.isfile('uspw.dat'):
-        conf = uspw_input()
-    else:
-        with open('uspw.dat', 'rb') as f:
-            conf = pickle.load(f)
+    # log
+    logging.basicConfig(level=logging.ERROR,
+         filename='errlog.log', 
+         format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(funcName)s')
+    try:
+        if not os.path.isfile('uspw.dat'):
+            conf = uspw_input()
+        else:
+            with open('uspw.dat', 'rb') as f:
+                conf = pickle.load(f)
 
-    driver, conf = iaaa_login(conf, headless=False)
-    # epidemic(driver, conf['input_temperature'])
-    # driver.quit()
-    
-    epidemic_access(driver)
-    with open('exit_school.log','a') as f:
-        f.write('%s\n'%(time.asctime(time.localtime()),))
+        driver, conf = iaaa_login(conf, headless=False)
+        # epidemic(driver, conf['input_temperature'])
+        # driver.quit()
+        
+        epidemic_access(driver)
+    except Exception:
+        logging.error('Error in Selenium', exc_info=True)
+        # TODO when error, arrange a redo / send email notification
+        raise
+
+    # with open('exit_school.log','a') as f:
+    #     f.write('%s\n'%(time.asctime(time.localtime()),))
     driver.quit()
 
     
