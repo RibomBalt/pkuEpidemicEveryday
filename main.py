@@ -1,3 +1,6 @@
+from io import StringIO
+from sys import argv
+import email_notification
 from selenium import webdriver
 from selenium.common.exceptions import SessionNotCreatedException, WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
@@ -24,12 +27,39 @@ def uspw_input(db_name = 'uspw.dat'):
     print('In this version only Edge Browser on Windows is supported.')
     engine_name = 'Edge'
     engine_path = input('Please input the ABSOLUTE PATH of folder of msedgedriver.exe\n(if empty, the webdriver.exe will be downloaded the same directory)\n: ')
+    # handle email notification
+    email_notify_on = 'Y' in input('Do you need email notification when the program fails? (y/[n]): ').upper()
+    if email_notify_on:
+        email_server = input('Please input your email SMTP server (default: smtp.pku.edu.cn): ')
+        if not email_server:
+            email_server = 'smtp.pku.edu.cn'
+        # Assume the login Username is the same as the email address
+        email_addr = input('Please input your email address (this address would be used to send and receive at the same time): ')
+        email_passwd = getpass('Please input your email password: ')
+    else:
+        email_server = None
+        email_addr = None
+        email_passwd = None
+
     if not engine_path:
         engine_path = './msedgedriver.exe'
     else:
         engine_path = os.path.join(engine_path, 'msedgedriver.exe')
 
-    conf = {'stuid': us, 'passwd': pw, 'webdriver_path': engine_path, 'driver_name': engine_name}
+    conf = {'stuid': us, 'passwd': pw, 'webdriver_path': engine_path, 'driver_name': engine_name, 'email':{
+        'notify':email_notify_on,
+        'server':email_server,
+        'addr':email_addr,
+        'passwd':email_passwd
+    }}
+    # send a test mail
+    if conf['email']['notify']:
+        try:
+            msg = email_notification.generate_test_email(conf['email']['addr'])    
+            email_notification.send_email(msg, conf['email']['server'], (conf['email']['addr'], conf['email']['passwd']))
+        except:
+            logging.error('Not able to send test emails', exc_info=True)
+
     with open(db_name, 'wb') as f:
         pickle.dump(conf, f)
     return conf
@@ -115,6 +145,8 @@ def epidemic_access(driver:webdriver.Edge):
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, 'el-card'))
     )
+    # prevent stale element
+    time.sleep(2)
     butns = driver.find_elements(By.CLASS_NAME, 'el-card')
     dict(zip([butn.text for butn in butns], butns))['园区往返申请'].click()
 
@@ -271,6 +303,10 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR,
          filename='errlog.log', 
          format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(funcName)s')
+    f_exc = StringIO()
+    ch = logging.StreamHandler(f_exc)
+    logging.getLogger().addHandler(ch)
+    
     try:
         if not os.path.isfile('uspw.dat'):
             conf = uspw_input()
@@ -286,10 +322,18 @@ if __name__ == "__main__":
     except Exception:
         logging.error('Error in Selenium', exc_info=True)
         # TODO when error, arrange a redo / send email notification
+        try:
+            err_log = f_exc.getvalue()
+            if conf['email']['notify']:
+                msg = email_notification.generate_error_email(err_log, conf['email']['addr'])
+                email_notification.send_email(msg, conf['email']['server'], (conf['email']['addr'], conf['email']['passwd']))
+        except:
+            logging.error('Notification Email Failed to Send.', exc_info=True)
         raise
 
     # with open('exit_school.log','a') as f:
     #     f.write('%s\n'%(time.asctime(time.localtime()),))
-    driver.quit()
+    finally:
+        driver.quit()
 
     
