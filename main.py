@@ -16,6 +16,7 @@ from getpass import getpass
 import re
 from zipfile import ZipFile
 import logging
+from datetime import datetime, timedelta
 
 # from datetime import date
 
@@ -162,14 +163,35 @@ def epidemic_access(driver:webdriver.Edge):
         lambda d:d.execute_script('try{$;return 1;}catch{return 0;}')
     )
     # Note: 第二天填报会缓存前一天的信息……
-    
-    # # attach id for certain elements
-    # driver.execute_script('''
-    #     $('label.el-form-item__label:contains("园区（出）")').parent().find('input').parent().attr('id','yuanquchu')
-    #     $('label.el-form-item__label:contains("园区（入）")').parent().find('input').parent().attr('id','yuanquru')
-    # ''')
 
-    # # fill in forms of 园区（出） and 园区（入）
+    # 2022.6.13: new 5sec check
+	# 2022.12.7 they removed 5sec check
+    # time.sleep(6)
+    # driver.execute_script('''
+    #     $('button.el-button--primary').find('span:contains("确定")').parent().attr('id', 'focus_queding');
+    # ''')
+    # WebDriverWait(driver, 10).until(
+    #     EC.element_to_be_clickable((By.ID, 'focus_queding'))
+    # ).click()
+    
+    # attach id for certain elements
+    driver.execute_script('''
+        $('label.el-form-item__label:contains("园区（出）")').parent().find('input').parent().attr('id','yuanquchu')
+        $('label.el-form-item__label:contains("园区（入）")').parent().find('input').parent().attr('id','yuanquru')
+        $('div.el-date-editor--date>input').attr('id', 'date_str')
+    '''.format((datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d'))
+    )
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, 'date_str'))
+    ).click()
+    time.sleep(.5)
+
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, '.el-date-table__row>:not(.disabled):not(.today)'))
+    ).click()
+    # tomorrow_button = driver.find_element(By.CSS_SELECTOR, '.el-date-table__row>td.available:not(.today)')
+    # tomorrow_button.click()
+    # fill in forms of 园区（出） and 园区（入）
     # for item_id in ['yuanquchu', 'yuanquru']:
     #     item = WebDriverWait(driver, 10).until(
     #         EC.element_to_be_clickable((By.ID, item_id)),
@@ -213,16 +235,20 @@ def epidemic_access(driver:webdriver.Edge):
     #     EC.presence_of_element_located((By.ID, 'focus_crxjtsx'))
     # ).send_keys('科研工作：物理楼419')
 
-    # 2022.6.13: new 5sec check
-    time.sleep(6)
     driver.execute_script('''
-            $('button.el-button--primary').find('span:contains("确定")').parent().attr('id', 'focus_queding');
             $('span:contains("保存")').attr('id', 'focus_save');
             $('span:contains("提交")').attr('id', 'focus_submit');
         ''')
-    WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.ID, 'focus_queding'))
-    ).click()
+
+    # # upload picture
+    # upload_butns = driver.find_element(By.CLASS_NAME, 'upload-demo').find_elements(By.TAG_NAME, 'button')
+    # upload_butns[0].click()
+    # os.system('upload.exe 通信大数据行程卡.jpg')
+    # time.sleep(2)
+    # upload_butns[1].click()
+    # os.system('upload.exe 北京健康宝.jpg')
+
+    # save and submit
     WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, 'focus_save'))
     ).click()
